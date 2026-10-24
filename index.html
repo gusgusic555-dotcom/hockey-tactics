@@ -67,12 +67,36 @@
     width: 34px; height: 34px; padding: 0; font-size: 16px;
   }
 
+  /* ---------- цвет ---------- */
+  #colorBtn { padding: 0; }
+  #colorBtn .dot {
+    width: 16px; height: 16px; border-radius: 50%;
+    background: var(--c, #111111);
+    box-shadow: 0 0 0 2px rgba(255,255,255,.6);
+  }
+
   .sw {
     width: 28px; height: 28px; padding: 0; border-radius: 50%;
     background: var(--c); border: 2px solid transparent; flex: none;
     box-shadow: inset 0 0 0 1px rgba(0,0,0,.25);
   }
+  /* важно: перекрываем button:hover / button.active, иначе цвет «перекрашивается» */
+  .sw:hover, .sw.active { background: var(--c); }
+  .sw:hover { border-color: rgba(255,255,255,.55); }
   .sw.active { border-color: #fff; box-shadow: 0 0 0 3px rgba(255,255,255,.18); }
+
+  /* ---------- выпадающие меню ---------- */
+  .menu-wrap { position: relative; display: flex; }
+
+  .menu {
+    position: absolute; top: calc(100% + 6px); left: 0; z-index: 60;
+    background: #16222e; border: 1px solid #2b3d4d; border-radius: 10px;
+    padding: 7px; display: flex; flex-wrap: wrap; gap: 6px;
+    box-shadow: 0 14px 30px rgba(0,0,0,.6);
+  }
+  .menu[hidden] { display: none; }
+  .menu.col { flex-direction: column; flex-wrap: nowrap; gap: 5px; }
+  .menu.col button { justify-content: flex-start; padding: 8px 12px; }
 
   input[type=range] { width: 70px; accent-color: #4a9ae8; cursor: pointer; margin: 0 2px; }
 
@@ -80,7 +104,7 @@
   .add-away { border-color: #24527a; background: #14263a; color: #a9cdf3; }
   .add-puck { border-color: #3a4750; background: #1d242b; color: #cdd8e2; }
 
-  .rec { border-color: #7a2b25; background: #35191a; color: #ff9a90; }
+  .rec { border-color: #7a2b25; background: #35191a; color: #ff9a90; min-width: 34px; padding: 8px 0; }
   .rec.recording {
     background: #c2261a; border-color: #ff6b5e; color: #fff;
     animation: pulse 1.2s infinite;
@@ -94,13 +118,13 @@
   .board-wrap {
     display: flex; justify-content: center;
     background: #070d12; border: 1px solid #22303d;
-    border-radius: 14px; padding: 8px;
+    border-radius: 14px; padding: 2px;
     box-shadow: 0 16px 40px -18px #000;
     margin-bottom: 8px;
   }
 
   .board {
-    position: relative; overflow: hidden; border-radius: 8px;
+    position: relative; overflow: hidden; border-radius: 12px;
     touch-action: none; flex: none;
   }
 
@@ -216,6 +240,7 @@
     .tool-btn { width: 32px; height: 32px; padding: 0; }
     .sw { width: 25px; height: 25px; }
     input[type=range] { width: 60px; }
+    .rec { min-width: 32px; padding: 7px 0; }
   }
 </style>
 </head>
@@ -225,30 +250,45 @@
   <h1>Тактическая доска</h1>
 
   <div class="toolbar" id="toolbar">
-    <!-- Первый ряд: Инструменты, Цвета, Толщина, Фишки -->
+    <!-- Первый ряд: Инструменты, Цвет, Толщина, Фишки -->
     <div class="row">
       <button id="toolSelect" class="tool-btn active" title="Выбор / перемещение">✋</button>
       <button id="toolPen" class="tool-btn" title="Карандаш">✏️</button>
       <button id="toolEraser" class="tool-btn" title="Ластик">⌫</button>
 
-      <button class="sw active" data-color="#e63946" style="--c:#e63946" title="Красный"></button>
-      <button class="sw" data-color="#2f7dd1" style="--c:#2f7dd1" title="Синий"></button>
+      <div class="menu-wrap">
+        <button id="colorBtn" class="tool-btn" title="Цвет"><span class="dot"></span></button>
+        <div class="menu" id="colorMenu" hidden>
+          <button class="sw active" data-color="#111111" style="--c:#111111" title="Чёрный"></button>
+          <button class="sw" data-color="#e63946" style="--c:#e63946" title="Красный"></button>
+          <button class="sw" data-color="#2f7dd1" style="--c:#2f7dd1" title="Синий"></button>
+          <button class="sw" data-color="#2fb56b" style="--c:#2fb56b" title="Зелёный"></button>
+          <button class="sw" data-color="#f2a33c" style="--c:#f2a33c" title="Оранжевый"></button>
+          <button class="sw" data-color="#a56bf0" style="--c:#a56bf0" title="Фиолетовый"></button>
+        </div>
+      </div>
 
       <input type="range" id="widthRange" min="2" max="14" value="5" title="Толщина">
 
-      <button class="add-home" data-add="home" title="Игрок A">+A</button>
-      <button class="add-away" data-add="away" title="Игрок B">+B</button>
-      <button class="add-puck" data-add="puck" title="Шайба">+●</button>
+      <div class="menu-wrap">
+        <button id="addBtn" class="tool-btn" title="Добавить">＋</button>
+        <div class="menu col" id="addMenu" hidden>
+          <button class="add-home" data-add="home" title="Игрок A">+A Игрок</button>
+          <button class="add-away" data-add="away" title="Игрок B">+B Игрок</button>
+          <button class="add-puck" data-add="puck" title="Шайба">+● Шайба</button>
+        </div>
+      </div>
     </div>
 
-    <!-- Второй ряд: Отмена, Очистка, Вид, Запись -->
+    <!-- Второй ряд: Отмена, Очистка, Переворот, Вид, Запись -->
     <div class="row">
       <button id="undoBtn" title="Шаг назад">↶</button>
       <button id="redoBtn" title="Шаг вперёд">↷</button>
       <button id="clearBtn" title="Очистить рисунок">✕ Рисунок</button>
       <button id="clearTokens" title="Убрать фишки">✕ Фишки</button>
+      <button id="flipBtn" title="Перевернуть поле">🔄</button>
       <button id="viewBtn" title="Полное поле / половина">Полное</button>
-      <button id="recBtn" class="rec" title="Начать запись">● Запись</button>
+      <button id="recBtn" class="rec" title="Начать запись">●</button>
     </div>
   </div>
 
@@ -364,11 +404,17 @@
   const toolEraser  = document.getElementById('toolEraser');
   const widthRange  = document.getElementById('widthRange');
   const viewBtn     = document.getElementById('viewBtn');
+  const flipBtn     = document.getElementById('flipBtn');
   const recBtn      = document.getElementById('recBtn');
   const undoBtn     = document.getElementById('undoBtn');
   const redoBtn     = document.getElementById('redoBtn');
   const clearBtn    = document.getElementById('clearBtn');
   const clearTokensBtn = document.getElementById('clearTokens');
+
+  const colorBtn    = document.getElementById('colorBtn');
+  const colorMenu   = document.getElementById('colorMenu');
+  const addBtn      = document.getElementById('addBtn');
+  const addMenu     = document.getElementById('addMenu');
 
   const playbackBar = document.getElementById('playbackBar');
   const pbName      = document.getElementById('pbName');
@@ -388,7 +434,7 @@
      СОСТОЯНИЕ
      ========================================================= */
   let tool = 'select';
-  let color = '#e63946';
+  let color = '#111111';          // по умолчанию — чёрный
   let strokeWidth = 5;
 
   let strokes = [];
@@ -402,10 +448,10 @@
   let counters = { home: 0, away: 0 };
 
   let viewHalf = false;
+  let flipped = false;            // переворот поля на 180°
   let VS = { portrait: false, vw: 1000, vh: 425 };
 
   let rec = null;
-  let recTimer = null;
   let lib = [];
 
   let player = { rec: null, time: 0, playing: false };
@@ -426,18 +472,26 @@
     if (VS.portrait) {
       VS.vw = 425;
       VS.vh = viewHalf ? 500 : 1000;
-      rinkContent.setAttribute('transform', 'translate(425,0) rotate(90)');
     } else {
       VS.vw = viewHalf ? 500 : 1000;
       VS.vh = 425;
-      rinkContent.removeAttribute('transform');
     }
     rinkSvg.setAttribute('viewBox', `0 0 ${VS.vw} ${VS.vh}`);
 
+    /* --- трансформация площадки (портрет + переворот) --- */
+    let tf;
+    if (!VS.portrait) {
+      tf = flipped ? `translate(${VS.vw},${VS.vh}) rotate(180)` : '';
+    } else {
+      tf = flipped ? `translate(0,${VS.vh}) rotate(-90)` : 'translate(425,0) rotate(90)';
+    }
+    if (tf) rinkContent.setAttribute('transform', tf);
+    else rinkContent.removeAttribute('transform');
+
+    /* --- размеры: поле тянем на всю доступную ширину --- */
     const wrap = board.parentElement;
-    const availW = Math.max(140, wrap.clientWidth - 18);
-    // Увеличиваем допустимую высоту, чтобы поле занимало максимум места
-    const availH = Math.max(180, Math.min(window.innerHeight * 0.75, 800));
+    const availW = Math.max(140, wrap.clientWidth - 4);
+    const availH = Math.max(180, window.innerHeight * 0.85);
 
     const aspect = VS.vw / VS.vh;
     let w = availW;
@@ -452,12 +506,13 @@
     canvas.height = Math.max(1, Math.round(h * dpr));
 
     const s = canvas.width / VS.vw;
-    
-    if (VS.portrait) {
-      // Поворот на 90 градусов для портретного режима
-      ctx.setTransform(0, s, -s, 0, 425 * s, 0);
+
+    if (!VS.portrait) {
+      if (flipped) ctx.setTransform(-s, 0, 0, -s, VS.vw * s, VS.vh * s);
+      else         ctx.setTransform(s, 0, 0, s, 0, 0);
     } else {
-      ctx.setTransform(s, 0, 0, s, 0, 0);
+      if (flipped) ctx.setTransform(0, -s, s, 0, 0, VS.vh * s);
+      else         ctx.setTransform(0, s, -s, 0, 425 * s, 0);
     }
 
     board.style.setProperty('--u', (w / VS.vw) + 'px');
@@ -469,9 +524,13 @@
     else redraw();
   }
 
+  /* мир (1000x425) -> координаты вьюбокса */
   function toVirtual(x, y) {
-    if (!VS.portrait) return { u: x, v: y };
-    return { u: 425 - y, v: x };
+    let u, v;
+    if (!VS.portrait) { u = x; v = y; }
+    else { u = 425 - y; v = x; }
+    if (flipped) { u = VS.vw - u; v = VS.vh - v; }
+    return { u: u, v: v };
   }
 
   function positionToken(el, x, y) {
@@ -491,8 +550,9 @@
 
   function getPos(e) {
     const r = board.getBoundingClientRect();
-    const u = (e.clientX - r.left) / r.width  * VS.vw;
-    const v = (e.clientY - r.top)  / r.height * VS.vh;
+    let u = (e.clientX - r.left) / r.width  * VS.vw;
+    let v = (e.clientY - r.top)  / r.height * VS.vh;
+    if (flipped) { u = VS.vw - u; v = VS.vh - v; }
     if (!VS.portrait) return { x: u, y: v };
     return { x: v, y: 425 - u };
   }
@@ -572,7 +632,7 @@
       return true;
     });
     if (removed.length) {
-      redoStack = []; // Очищаем redo при стирании
+      redoStack = [];
       for (const id of removed) pushEvent({ type: 'strokeRemove', id });
       redraw();
     }
@@ -619,7 +679,6 @@
     }
 
     updateRecUI();
-    recTimer = setInterval(updateRecUI, 250);
   }
 
   function stopRecording() {
@@ -631,7 +690,6 @@
 
     lib.unshift(rec);
     rec = null;
-    if (recTimer) { clearInterval(recTimer); recTimer = null; }
 
     saveLib();
     renderLib();
@@ -640,13 +698,12 @@
 
   function updateRecUI() {
     if (rec) {
-      const s = Math.floor((performance.now() - rec.startedAt) / 1000);
-      const mm = String(Math.floor(s / 60)).padStart(2, '0');
-      const ss = String(s % 60).padStart(2, '0');
-      recBtn.textContent = '■ Стоп ' + mm + ':' + ss;
+      recBtn.textContent = '■';
+      recBtn.title = 'Остановить запись';
       recBtn.classList.add('recording');
     } else {
-      recBtn.textContent = '● Запись';
+      recBtn.textContent = '●';
+      recBtn.title = 'Начать запись';
       recBtn.classList.remove('recording');
     }
   }
@@ -723,11 +780,11 @@
 
     if (tool === 'eraser') { erasing = true; eraseAt(p); return; }
 
-    redoStack = []; // Новый штрих сбрасывает redo
+    redoStack = [];
 
     const id = 'sk' + (++strokeSeq);
     current = { id, type: 'pen', color, width: strokeWidth, points: [p] };
-    
+
     pushEvent({ type: 'strokeStart', id, strokeType: current.type,
                 color, width: strokeWidth, x: p.x, y: p.y });
     redraw();
@@ -809,17 +866,48 @@
   toolPen.addEventListener('click', () => setTool('pen'));
   toolEraser.addEventListener('click', () => setTool('eraser'));
 
+  /* ---------- меню ---------- */
+  function closeMenus() {
+    colorMenu.hidden = true;
+    addMenu.hidden = true;
+  }
+
+  colorBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    const open = !colorMenu.hidden;
+    closeMenus();
+    colorMenu.hidden = open;
+  });
+
+  addBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    const open = !addMenu.hidden;
+    closeMenus();
+    addMenu.hidden = open;
+  });
+
+  document.addEventListener('pointerdown', e => {
+    if (!e.target.closest('.menu-wrap')) closeMenus();
+  });
+
+  /* ---------- цвет ---------- */
+  function setColor(c) {
+    color = c;
+    colorBtn.style.setProperty('--c', c);
+    document.querySelectorAll('.sw').forEach(b => b.classList.toggle('active', b.dataset.color === c));
+  }
+
   document.querySelectorAll('.sw').forEach(btn => {
     btn.addEventListener('click', () => {
-      color = btn.dataset.color;
-      document.querySelectorAll('.sw').forEach(b => b.classList.toggle('active', b === btn));
-      if (tool !== 'pen') setTool('pen'); // Автоматически переключаем на карандаш при выборе цвета
+      setColor(btn.dataset.color);
+      colorMenu.hidden = true;
+      if (tool !== 'pen') setTool('pen');
     });
   });
 
   widthRange.addEventListener('input', e => { strokeWidth = +e.target.value; });
 
-  // Undo / Redo
+  /* ---------- Undo / Redo ---------- */
   undoBtn.addEventListener('click', () => {
     if (replayMode || !strokes.length) return;
     redoStack.push(strokes.pop());
@@ -843,6 +931,12 @@
 
   viewBtn.addEventListener('click', () => {
     viewHalf = !viewHalf;
+    layout();
+  });
+
+  flipBtn.addEventListener('click', () => {
+    if (replayMode) return;
+    flipped = !flipped;
     layout();
   });
 
@@ -908,7 +1002,10 @@
   }
 
   document.querySelectorAll('[data-add]').forEach(btn => {
-    btn.addEventListener('click', () => addToken(btn.dataset.add));
+    btn.addEventListener('click', () => {
+      addToken(btn.dataset.add);
+      addMenu.hidden = true;
+    });
   });
 
   clearTokensBtn.addEventListener('click', () => {
@@ -1283,12 +1380,14 @@
   /* =========================================================
      СТАРТ
      ========================================================= */
-  viewHalf = isPortrait(); // На телефоне сразу половина поля
+  viewHalf = isPortrait();
 
+  setColor(color);
   setTool('select');
   loadLib();
   renderLib();
   updatePlaybackButtons();
+  updateRecUI();
   layout();
 
   new ResizeObserver(() => layout()).observe(board.parentElement);
