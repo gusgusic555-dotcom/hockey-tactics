@@ -20,29 +20,34 @@
   }
 
   .app {
-    max-width: 1400px;
+    max-width: 100%;
     margin: 0 auto;
-    padding: 6px 6px calc(20px + env(safe-area-inset-bottom));
+    padding: 2px 2px calc(10px + env(safe-area-inset-bottom));
   }
 
   /* ---------- панель инструментов ---------- */
   .toolbar {
-    display: flex; flex-direction: column; gap: 6px;
+    display: flex; flex-direction: column; gap: 4px;
     background: #101a24; border: 1px solid #22303d;
-    border-radius: 12px; padding: 8px; margin-bottom: 6px;
+    border-radius: 10px; padding: 6px; margin-bottom: 4px;
     transition: opacity .2s;
   }
   .row {
-    display: flex; flex-wrap: wrap; align-items: center; gap: 5px;
+    display: flex; flex-wrap: nowrap; align-items: stretch; gap: 4px;
+    width: 100%;
+  }
+  .row > button, .row > .menu-wrap {
+    flex: 1 1 0%;
   }
 
   button {
-    font: inherit; font-size: 13px; line-height: 1;
+    font: inherit; font-size: 12px; line-height: 1;
     color: #cfe0ee; background: #1b2733;
     border: 1px solid #2b3d4d; border-radius: 8px;
-    padding: 8px 10px; cursor: pointer;
+    padding: 8px 2px; cursor: pointer;
     transition: background .15s, border-color .15s, color .15s;
-    white-space: nowrap; touch-action: manipulation;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    touch-action: manipulation;
     display: flex; align-items: center; justify-content: center;
   }
   button:hover { background: #24384a; border-color: #3d5b73; }
@@ -54,7 +59,8 @@
 
   /* Кнопки инструментов */
   .tool-btn {
-    width: 34px; height: 34px; padding: 0; font-size: 16px;
+    width: auto; height: 34px; padding: 0; font-size: 16px;
+    flex: 1 1 0%;
   }
 
   /* ---------- цвет ---------- */
@@ -76,6 +82,7 @@
 
   /* ---------- выпадающие меню ---------- */
   .menu-wrap { position: relative; display: flex; }
+  .menu-wrap button { width: 100%; }
 
   .menu {
     position: absolute; top: calc(100% + 6px); left: 0; z-index: 60;
@@ -87,13 +94,16 @@
   .menu.col { flex-direction: column; flex-wrap: nowrap; gap: 5px; }
   .menu.col button { justify-content: flex-start; padding: 8px 12px; }
 
-  input[type=range] { width: 70px; accent-color: #4a9ae8; cursor: pointer; margin: 0 2px; }
+  input[type=range] { 
+    flex: 1.5 1 0%; width: auto; min-width: 40px;
+    accent-color: #4a9ae8; cursor: pointer; margin: 0; 
+  }
 
   .add-home { border-color: #7a2b25; background: #35191a; color: #ffb3ad; }
   .add-away { border-color: #24527a; background: #14263a; color: #a9cdf3; }
   .add-puck { border-color: #3a4750; background: #1d242b; color: #cdd8e2; }
 
-  .rec { border-color: #7a2b25; background: #35191a; color: #ff9a90; min-width: 34px; padding: 8px 0; }
+  .rec { border-color: #7a2b25; background: #35191a; color: #ff9a90; min-width: 0; }
   .rec.recording {
     background: #c2261a; border-color: #ff6b5e; color: #fff;
     animation: pulse 1.2s infinite;
@@ -103,18 +113,22 @@
     50%     { box-shadow: 0 0 0 6px rgba(226,57,70,0); }
   }
 
+  /* Специфичные пропорции для кнопок */
+  #viewBtn { flex: 1.2 1 0%; font-size: 11px; }
+  .row:nth-child(2) #clearBtn,
+  .row:nth-child(2) #clearTokens { flex: 1.7 1 0%; }
+
   /* ---------- поле ---------- */
   .board-wrap {
     display: flex; justify-content: center;
-    background: #070d12; border: 1px solid #22303d;
-    border-radius: 12px; padding: 0;
+    background: #070d12;
+    border-radius: 8px; padding: 0;
     box-shadow: 0 16px 40px -18px #000;
-    margin-bottom: 6px;
-    overflow: hidden;
+    margin-bottom: 4px; overflow: hidden;
   }
 
   .board {
-    position: relative; overflow: hidden; border-radius: 11px;
+    position: relative; overflow: hidden; border-radius: 8px;
     touch-action: none; flex: none;
   }
 
@@ -225,12 +239,8 @@
   .empty { font-size: 12px; color: #6f8698; margin: 4px 0 0; }
 
   @media (max-width: 480px) {
-    .app { padding: 4px 4px calc(16px + env(safe-area-inset-bottom)); }
-    button { font-size: 12px; padding: 7px 8px; }
-    .tool-btn { width: 32px; height: 32px; padding: 0; }
-    .sw { width: 25px; height: 25px; }
-    input[type=range] { width: 60px; }
-    .rec { min-width: 32px; padding: 7px 0; }
+    .app { padding: 2px 2px calc(8px + env(safe-area-inset-bottom)); }
+    .tool-btn { height: 32px; }
   }
 </style>
 </head>
@@ -238,7 +248,7 @@
 
 <div class="app">
   <div class="toolbar" id="toolbar">
-    <!-- Первый ряд: Инструменты, Цвет, Толщина, Фишки, Вид -->
+    <!-- Первый ряд -->
     <div class="row">
       <button id="toolSelect" class="tool-btn active" title="Выбор / перемещение">✋</button>
       <button id="toolPen" class="tool-btn" title="Карандаш">✏️</button>
@@ -270,7 +280,7 @@
       <button id="viewBtn" title="Полное поле / половина">Полное</button>
     </div>
 
-    <!-- Второй ряд: Отмена, Очистка, Переворот, Запись -->
+    <!-- Второй ряд -->
     <div class="row">
       <button id="undoBtn" title="Шаг назад">↶</button>
       <button id="redoBtn" title="Шаг вперёд">↷</button>
@@ -373,9 +383,6 @@
 (function () {
   'use strict';
 
-  /* =========================================================
-     БАЗА
-     ========================================================= */
   const W = 1000, H = 425;
   const SPEEDS = [0.25, 0.5, 1, 2, 4];
   const LS_KEY = 'hockey-board-lib-v1';
@@ -419,9 +426,6 @@
   const libList     = document.getElementById('libList');
   const libEmpty    = document.getElementById('libEmpty');
 
-  /* =========================================================
-     СОСТОЯНИЕ
-     ========================================================= */
   let tool = 'select';
   let color = '#111111';
   let strokeWidth = 5;
@@ -448,9 +452,6 @@
   let replayEls = new Map();
   let speed = 1;
 
-  /* =========================================================
-     ОРИЕНТАЦИЯ / РАЗМЕТКА
-     ========================================================= */
   function isPortrait() {
     return window.innerHeight > window.innerWidth;
   }
@@ -458,16 +459,16 @@
   function layout() {
     VS.portrait = isPortrait();
 
+    // Уменьшаем высоту для портретного режима, чтобы поле было чуть короче
     if (VS.portrait) {
       VS.vw = 425;
-      VS.vh = viewHalf ? 500 : 1000;
+      VS.vh = viewHalf ? 480 : 950; 
     } else {
       VS.vw = viewHalf ? 500 : 1000;
       VS.vh = 425;
     }
     rinkSvg.setAttribute('viewBox', `0 0 ${VS.vw} ${VS.vh}`);
 
-    /* --- трансформация площадки (портрет + переворот) --- */
     let tf;
     if (!VS.portrait) {
       tf = flipped ? `translate(${VS.vw},${VS.vh}) rotate(180)` : '';
@@ -477,15 +478,20 @@
     if (tf) rinkContent.setAttribute('transform', tf);
     else rinkContent.removeAttribute('transform');
 
-    /* --- размеры: поле на всю доступную ширину --- */
     const wrap = board.parentElement;
-    const availW = Math.max(140, wrap.clientWidth);
+    // Поле на всю ширину экрана (минус мелкие отступы)
+    const availW = Math.max(140, window.innerWidth - 4);
     const availH = Math.max(180, window.innerHeight * 0.9);
 
     const aspect = VS.vw / VS.vh;
     let w = availW;
     let h = w / aspect;
-    if (h > availH) { h = availH; w = h * aspect; }
+
+    // В портретном режиме позволяем полю заполнить всю ширину (и скроллиться, если надо)
+    if (!VS.portrait && h > availH) { 
+      h = availH; 
+      w = h * aspect; 
+    }
 
     board.style.width  = w + 'px';
     board.style.height = h + 'px';
@@ -513,7 +519,6 @@
     else redraw();
   }
 
-  /* мир (1000x425) -> координаты вьюбокса */
   function toVirtual(x, y) {
     let u, v;
     if (!VS.portrait) { u = x; v = y; }
@@ -546,9 +551,6 @@
     return { x: v, y: 425 - u };
   }
 
-  /* =========================================================
-     РИСОВАНИЕ
-     ========================================================= */
   function clearCanvas() {
     ctx.save();
     ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -593,9 +595,6 @@
     }
   }
 
-  /* =========================================================
-     ЛАСТИК
-     ========================================================= */
   function segDist(p, a, b) {
     const vx = b.x - a.x, vy = b.y - a.y;
     const wx = p.x - a.x, wy = p.y - a.y;
@@ -627,9 +626,6 @@
     }
   }
 
-  /* =========================================================
-     ЗАПИСЬ
-     ========================================================= */
   function recNow() {
     return rec ? (performance.now() - rec.startedAt) / 1000 : 0;
   }
@@ -703,9 +699,6 @@
     else startRecording();
   });
 
-  /* =========================================================
-     СОСТОЯНИЕ НА МОМЕНТ T
-     ========================================================= */
   function stateAt(events, T) {
     const strokeMap = new Map();
     const tokenMap  = new Map();
@@ -758,9 +751,6 @@
     return { strokes: [...strokeMap.values()], tokens: [...tokenMap.values()] };
   }
 
-  /* =========================================================
-     ЖИВЫЕ ШТРИХИ
-     ========================================================= */
   canvas.addEventListener('pointerdown', e => {
     if (replayMode || tool === 'select') return;
     e.preventDefault();
@@ -819,9 +809,6 @@
   canvas.addEventListener('pointerup', endStroke);
   canvas.addEventListener('pointercancel', endStroke);
 
-  /* =========================================================
-     ИНСТРУМЕНТЫ
-     ========================================================= */
   function updatePointerEvents() {
     if (replayMode) {
       canvas.style.pointerEvents = 'none';
@@ -855,7 +842,6 @@
   toolPen.addEventListener('click', () => setTool('pen'));
   toolEraser.addEventListener('click', () => setTool('eraser'));
 
-  /* ---------- меню ---------- */
   function closeMenus() {
     colorMenu.hidden = true;
     addMenu.hidden = true;
@@ -879,7 +865,6 @@
     if (!e.target.closest('.menu-wrap')) closeMenus();
   });
 
-  /* ---------- цвет ---------- */
   function setColor(c) {
     color = c;
     colorBtn.style.setProperty('--c', c);
@@ -896,7 +881,6 @@
 
   widthRange.addEventListener('input', e => { strokeWidth = +e.target.value; });
 
-  /* ---------- Undo / Redo ---------- */
   undoBtn.addEventListener('click', () => {
     if (replayMode || !strokes.length) return;
     redoStack.push(strokes.pop());
@@ -929,9 +913,6 @@
     layout();
   });
 
-  /* =========================================================
-     ФИШКИ
-     ========================================================= */
   function clampX(x) { return Math.max(14, Math.min(W - 14, x)); }
   function clampY(y) { return Math.max(14, Math.min(H - 14, y)); }
 
@@ -1006,7 +987,6 @@
     pushEvent({ type: 'clearTokens' });
   });
 
-  /* ---------- перетаскивание ---------- */
   function onTokenDown(e) {
     if (tool !== 'select' || replayMode || e.button === 2) return;
     e.preventDefault();
@@ -1081,9 +1061,6 @@
     el.classList.add('selected');
   }
 
-  /* =========================================================
-     ВОСПРОИЗВЕДЕНИЕ
-     ========================================================= */
   function renderReplayFrame() {
     if (!player.rec) return;
     const state = stateAt(player.rec.events, player.time);
@@ -1197,7 +1174,6 @@
     renderReplayFrame();
   });
 
-  /* ---------- обрезка ---------- */
   function trimStart() {
     const r = player.rec;
     if (!r) return;
@@ -1253,9 +1229,6 @@
   trimStartBtn.addEventListener('click', trimStart);
   trimEndBtn.addEventListener('click', trimEnd);
 
-  /* =========================================================
-     БИБЛИОТЕКА
-     ========================================================= */
   function saveLib() {
     try {
       localStorage.setItem(LS_KEY, JSON.stringify(lib));
@@ -1325,9 +1298,6 @@
     }
   }
 
-  /* =========================================================
-     ЦИКЛ
-     ========================================================= */
   let lastFrame = 0;
 
   function tick(now) {
@@ -1348,9 +1318,6 @@
     requestAnimationFrame(tick);
   }
 
-  /* =========================================================
-     КЛАВИАТУРА
-     ========================================================= */
   document.addEventListener('keydown', e => {
     if (replayMode) return;
 
@@ -1366,9 +1333,6 @@
     }
   });
 
-  /* =========================================================
-     СТАРТ
-     ========================================================= */
   viewHalf = isPortrait();
 
   setColor(color);
@@ -1385,7 +1349,6 @@
 
   requestAnimationFrame(tick);
 
-  // стартовые фишки
   addToken('home');
   addToken('home');
   addToken('away');
