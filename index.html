@@ -36,29 +36,36 @@
   }
 
   /* ---------- панель инструментов ---------- */
-  .bar {
-    display: flex; flex-wrap: wrap; align-items: center; gap: 5px;
+  .toolbar {
+    display: flex; flex-direction: column; gap: 6px;
     background: #101a24; border: 1px solid #22303d;
-    border-radius: 12px; padding: 7px 8px; margin-bottom: 8px;
+    border-radius: 12px; padding: 8px; margin-bottom: 8px;
     transition: opacity .2s;
   }
+  .row {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 5px;
+  }
 
-  select, button {
+  button {
     font: inherit; font-size: 13px; line-height: 1;
     color: #cfe0ee; background: #1b2733;
     border: 1px solid #2b3d4d; border-radius: 8px;
-    padding: 8px 9px; cursor: pointer;
+    padding: 8px 10px; cursor: pointer;
     transition: background .15s, border-color .15s, color .15s;
     white-space: nowrap; touch-action: manipulation;
+    display: flex; align-items: center; justify-content: center;
   }
-  select { appearance: none; -webkit-appearance: none; padding-right: 22px;
-           background-image: linear-gradient(45deg, transparent 50%, #7d92a6 50%),
-                             linear-gradient(135deg, #7d92a6 50%, transparent 50%);
-           background-position: right 10px center, right 5px center;
-           background-size: 5px 5px, 5px 5px;
-           background-repeat: no-repeat; }
   button:hover { background: #24384a; border-color: #3d5b73; }
   button:active { transform: translateY(1px); }
+  button.active {
+    background: #2f7dd1; border-color: #57a5ee; color: #fff;
+    box-shadow: 0 0 0 2px rgba(87,165,238,.25);
+  }
+
+  /* Кнопки инструментов */
+  .tool-btn {
+    width: 34px; height: 34px; padding: 0; font-size: 16px;
+  }
 
   .sw {
     width: 28px; height: 28px; padding: 0; border-radius: 50%;
@@ -67,7 +74,7 @@
   }
   .sw.active { border-color: #fff; box-shadow: 0 0 0 3px rgba(255,255,255,.18); }
 
-  input[type=range] { width: 74px; accent-color: #4a9ae8; cursor: pointer; margin: 0 2px; }
+  input[type=range] { width: 70px; accent-color: #4a9ae8; cursor: pointer; margin: 0 2px; }
 
   .add-home { border-color: #7a2b25; background: #35191a; color: #ffb3ad; }
   .add-away { border-color: #24527a; background: #14263a; color: #a9cdf3; }
@@ -82,8 +89,6 @@
     0%,100% { box-shadow: 0 0 0 0 rgba(226,57,70,.55); }
     50%     { box-shadow: 0 0 0 6px rgba(226,57,70,0); }
   }
-
-  #flipBtn.on { background: #2f7dd1; border-color: #57a5ee; color: #fff; }
 
   /* ---------- поле ---------- */
   .board-wrap {
@@ -110,7 +115,7 @@
   .replay-mode #replayTokens { display: block; }
   .replay-mode #tokens { display: none; }
 
-  .replay-mode .bar, .replay-mode .library {
+  .replay-mode .toolbar, .replay-mode .library {
     opacity: .35; pointer-events: none;
   }
 
@@ -207,9 +212,10 @@
 
   @media (max-width: 480px) {
     .app { padding: 8px 8px calc(16px + env(safe-area-inset-bottom)); }
-    select, button { font-size: 12px; padding: 7px 8px; }
+    button { font-size: 12px; padding: 7px 8px; }
+    .tool-btn { width: 32px; height: 32px; padding: 0; }
     .sw { width: 25px; height: 25px; }
-    input[type=range] { width: 62px; }
+    input[type=range] { width: 60px; }
   }
 </style>
 </head>
@@ -218,31 +224,32 @@
 <div class="app">
   <h1>Тактическая доска</h1>
 
-  <div class="bar" id="toolbar">
-    <select id="toolSel" title="Инструмент">
-      <option value="select">✋ Выбор</option>
-      <option value="pen">✏️ Карандаш</option>
-      <option value="line">／ Линия</option>
-      <option value="arrow">➜ Стрелка</option>
-      <option value="eraser">⌫ Ластик</option>
-    </select>
+  <div class="toolbar" id="toolbar">
+    <!-- Первый ряд: Инструменты, Цвета, Толщина, Фишки -->
+    <div class="row">
+      <button id="toolSelect" class="tool-btn active" title="Выбор / перемещение">✋</button>
+      <button id="toolPen" class="tool-btn" title="Карандаш">✏️</button>
+      <button id="toolEraser" class="tool-btn" title="Ластик">⌫</button>
 
-    <button class="sw active" data-color="#e63946" style="--c:#e63946" title="Красный"></button>
-    <button class="sw" data-color="#2f7dd1" style="--c:#2f7dd1" title="Синий"></button>
+      <button class="sw active" data-color="#e63946" style="--c:#e63946" title="Красный"></button>
+      <button class="sw" data-color="#2f7dd1" style="--c:#2f7dd1" title="Синий"></button>
 
-    <input type="range" id="widthRange" min="2" max="14" value="5" title="Толщина">
+      <input type="range" id="widthRange" min="2" max="14" value="5" title="Толщина">
 
-    <button class="add-home" data-add="home" title="Игрок A">+A</button>
-    <button class="add-away" data-add="away" title="Игрок B">+B</button>
-    <button class="add-puck" data-add="puck" title="Шайба">+●</button>
+      <button class="add-home" data-add="home" title="Игрок A">+A</button>
+      <button class="add-away" data-add="away" title="Игрок B">+B</button>
+      <button class="add-puck" data-add="puck" title="Шайба">+●</button>
+    </div>
 
-    <button id="undoBtn" title="Отменить штрих">↶</button>
-    <button id="clearBtn" title="Очистить рисунок">✕ Рисунок</button>
-    <button id="clearTokens" title="Убрать фишки">✕ Фишки</button>
-
-    <button id="viewBtn" title="Полное поле / половина">Полное</button>
-    <button id="flipBtn" title="Перевернуть доску на 180°">⟲</button>
-    <button id="recBtn" class="rec" title="Начать запись">● Запись</button>
+    <!-- Второй ряд: Отмена, Очистка, Вид, Запись -->
+    <div class="row">
+      <button id="undoBtn" title="Шаг назад">↶</button>
+      <button id="redoBtn" title="Шаг вперёд">↷</button>
+      <button id="clearBtn" title="Очистить рисунок">✕ Рисунок</button>
+      <button id="clearTokens" title="Убрать фишки">✕ Фишки</button>
+      <button id="viewBtn" title="Полное поле / половина">Полное</button>
+      <button id="recBtn" class="rec" title="Начать запись">● Запись</button>
+    </div>
   </div>
 
   <div class="board-wrap">
@@ -352,13 +359,15 @@
   const tokensEl    = document.getElementById('tokens');
   const replayEl    = document.getElementById('replayTokens');
 
-  const toolSel      = document.getElementById('toolSel');
-  const widthRange   = document.getElementById('widthRange');
-  const viewBtn      = document.getElementById('viewBtn');
-  const flipBtn      = document.getElementById('flipBtn');
-  const recBtn       = document.getElementById('recBtn');
-  const undoBtn      = document.getElementById('undoBtn');
-  const clearBtn     = document.getElementById('clearBtn');
+  const toolSelect  = document.getElementById('toolSelect');
+  const toolPen     = document.getElementById('toolPen');
+  const toolEraser  = document.getElementById('toolEraser');
+  const widthRange  = document.getElementById('widthRange');
+  const viewBtn     = document.getElementById('viewBtn');
+  const recBtn      = document.getElementById('recBtn');
+  const undoBtn     = document.getElementById('undoBtn');
+  const redoBtn     = document.getElementById('redoBtn');
+  const clearBtn    = document.getElementById('clearBtn');
   const clearTokensBtn = document.getElementById('clearTokens');
 
   const playbackBar = document.getElementById('playbackBar');
@@ -383,6 +392,7 @@
   let strokeWidth = 5;
 
   let strokes = [];
+  let redoStack = [];
   let current = null;
   let erasing = false;
   let selected = null;
@@ -392,12 +402,11 @@
   let counters = { home: 0, away: 0 };
 
   let viewHalf = false;
-  let flip = true;                 // по умолчанию в портрете перевёрнуто
   let VS = { portrait: false, vw: 1000, vh: 425 };
 
-  let rec = null;             // активная запись
+  let rec = null;
   let recTimer = null;
-  let lib = [];               // сохранённые записи
+  let lib = [];
 
   let player = { rec: null, time: 0, playing: false };
   let replayMode = false;
@@ -417,9 +426,7 @@
     if (VS.portrait) {
       VS.vw = 425;
       VS.vh = viewHalf ? 500 : 1000;
-      rinkContent.setAttribute('transform', flip
-        ? `translate(0,${VS.vh}) rotate(-90)`
-        : 'translate(425,0) rotate(90)');
+      rinkContent.setAttribute('transform', 'translate(425,0) rotate(90)');
     } else {
       VS.vw = viewHalf ? 500 : 1000;
       VS.vh = 425;
@@ -427,10 +434,10 @@
     }
     rinkSvg.setAttribute('viewBox', `0 0 ${VS.vw} ${VS.vh}`);
 
-    // размер доски
     const wrap = board.parentElement;
     const availW = Math.max(140, wrap.clientWidth - 18);
-    const availH = Math.max(180, Math.min(window.innerHeight * 0.62, 680));
+    // Увеличиваем допустимую высоту, чтобы поле занимало максимум места
+    const availH = Math.max(180, Math.min(window.innerHeight * 0.75, 800));
 
     const aspect = VS.vw / VS.vh;
     let w = availW;
@@ -440,15 +447,15 @@
     board.style.width  = w + 'px';
     board.style.height = h + 'px';
 
-    // холст
     const dpr = window.devicePixelRatio || 1;
     canvas.width  = Math.max(1, Math.round(w * dpr));
     canvas.height = Math.max(1, Math.round(h * dpr));
 
     const s = canvas.width / VS.vw;
+    
     if (VS.portrait) {
-      if (flip) ctx.setTransform(0, -s, s, 0, 0, VS.vh * s);
-      else      ctx.setTransform(0,  s, -s, 0, 425 * s, 0);
+      // Поворот на 90 градусов для портретного режима
+      ctx.setTransform(0, s, -s, 0, 425 * s, 0);
     } else {
       ctx.setTransform(s, 0, 0, s, 0, 0);
     }
@@ -456,9 +463,6 @@
     board.style.setProperty('--u', (w / VS.vw) + 'px');
 
     viewBtn.textContent = viewHalf ? 'Половина' : 'Полное';
-    flipBtn.classList.toggle('on', VS.portrait && flip);
-    flipBtn.style.display = VS.portrait ? '' : 'none';
-
     repositionAllTokens();
 
     if (replayMode) renderReplayFrame();
@@ -467,7 +471,7 @@
 
   function toVirtual(x, y) {
     if (!VS.portrait) return { u: x, v: y };
-    return flip ? { u: y, v: VS.vh - x } : { u: 425 - y, v: x };
+    return { u: 425 - y, v: x };
   }
 
   function positionToken(el, x, y) {
@@ -490,7 +494,7 @@
     const u = (e.clientX - r.left) / r.width  * VS.vw;
     const v = (e.clientY - r.top)  / r.height * VS.vh;
     if (!VS.portrait) return { x: u, y: v };
-    return flip ? { x: VS.vh - v, y: u } : { x: v, y: 425 - u };
+    return { x: v, y: 425 - u };
   }
 
   /* =========================================================
@@ -537,37 +541,6 @@
       const last = pts[pts.length - 1];
       ctx.lineTo(last.x, last.y);
       ctx.stroke();
-      return;
-    }
-
-    const a = pts[0];
-    const b = pts[pts.length - 1];
-
-    if (s.type === 'line') {
-      ctx.beginPath();
-      ctx.moveTo(a.x, a.y);
-      ctx.lineTo(b.x, b.y);
-      ctx.stroke();
-      return;
-    }
-
-    if (s.type === 'arrow') {
-      const ang = Math.atan2(b.y - a.y, b.x - a.x);
-      const head = Math.max(14, s.width * 3.6);
-      const bx = b.x - Math.cos(ang) * head * 0.72;
-      const by = b.y - Math.sin(ang) * head * 0.72;
-
-      ctx.beginPath();
-      ctx.moveTo(a.x, a.y);
-      ctx.lineTo(bx, by);
-      ctx.stroke();
-
-      ctx.beginPath();
-      ctx.moveTo(b.x, b.y);
-      ctx.lineTo(b.x - Math.cos(ang - 0.42) * head, b.y - Math.sin(ang - 0.42) * head);
-      ctx.lineTo(b.x - Math.cos(ang + 0.42) * head, b.y - Math.sin(ang + 0.42) * head);
-      ctx.closePath();
-      ctx.fill();
     }
   }
 
@@ -599,6 +572,7 @@
       return true;
     });
     if (removed.length) {
+      redoStack = []; // Очищаем redo при стирании
       for (const id of removed) pushEvent({ type: 'strokeRemove', id });
       redraw();
     }
@@ -628,7 +602,6 @@
       duration: 0
     };
 
-    // «запекаем» текущее состояние, чтобы запись начиналась с него
     const t0 = -1;
     for (const s of strokes) {
       rec.events.push({ type: 'strokeStart', id: s.id, strokeType: s.type,
@@ -750,12 +723,11 @@
 
     if (tool === 'eraser') { erasing = true; eraseAt(p); return; }
 
+    redoStack = []; // Новый штрих сбрасывает redo
+
     const id = 'sk' + (++strokeSeq);
-    if (tool === 'pen') {
-      current = { id, type: 'pen', color, width: strokeWidth, points: [p] };
-    } else {
-      current = { id, type: tool, color, width: strokeWidth, points: [p, p] };
-    }
+    current = { id, type: 'pen', color, width: strokeWidth, points: [p] };
+    
     pushEvent({ type: 'strokeStart', id, strokeType: current.type,
                 color, width: strokeWidth, x: p.x, y: p.y });
     redraw();
@@ -774,8 +746,6 @@
         current.points.push(p);
         pushEvent({ type: 'strokePoint', id: current.id, x: p.x, y: p.y });
       }
-    } else {
-      current.points[1] = p;
     }
     redraw();
   });
@@ -789,11 +759,8 @@
     const b = pts[pts.length - 1];
     const far = Math.hypot(a.x - b.x, a.y - b.y) > 3;
 
-    if (current.type === 'pen' || far) {
+    if (far) {
       strokes.push(current);
-      if (current.type !== 'pen') {
-        pushEvent({ type: 'strokePoint', id: current.id, x: b.x, y: b.y });
-      }
       pushEvent({ type: 'strokeEnd', id: current.id });
     } else {
       pushEvent({ type: 'strokeRemove', id: current.id });
@@ -824,6 +791,10 @@
 
   function setTool(t) {
     tool = t;
+    toolSelect.classList.toggle('active', t === 'select');
+    toolPen.classList.toggle('active', t === 'pen');
+    toolEraser.classList.toggle('active', t === 'eraser');
+
     board.style.cursor = (t === 'select') ? 'default'
                        : (t === 'eraser') ? 'cell'
                        : 'crosshair';
@@ -834,27 +805,37 @@
     updatePointerEvents();
   }
 
-  toolSel.addEventListener('change', () => setTool(toolSel.value));
+  toolSelect.addEventListener('click', () => setTool('select'));
+  toolPen.addEventListener('click', () => setTool('pen'));
+  toolEraser.addEventListener('click', () => setTool('eraser'));
 
   document.querySelectorAll('.sw').forEach(btn => {
     btn.addEventListener('click', () => {
       color = btn.dataset.color;
       document.querySelectorAll('.sw').forEach(b => b.classList.toggle('active', b === btn));
+      if (tool !== 'pen') setTool('pen'); // Автоматически переключаем на карандаш при выборе цвета
     });
   });
 
   widthRange.addEventListener('input', e => { strokeWidth = +e.target.value; });
 
+  // Undo / Redo
   undoBtn.addEventListener('click', () => {
     if (replayMode || !strokes.length) return;
-    const s = strokes.pop();
-    pushEvent({ type: 'strokeRemove', id: s.id });
+    redoStack.push(strokes.pop());
+    redraw();
+  });
+
+  redoBtn.addEventListener('click', () => {
+    if (replayMode || !redoStack.length) return;
+    strokes.push(redoStack.pop());
     redraw();
   });
 
   clearBtn.addEventListener('click', () => {
     if (replayMode) return;
     strokes = [];
+    redoStack = [];
     current = null;
     pushEvent({ type: 'clearStrokes' });
     redraw();
@@ -862,12 +843,6 @@
 
   viewBtn.addEventListener('click', () => {
     viewHalf = !viewHalf;
-    layout();
-  });
-
-  flipBtn.addEventListener('click', () => {
-    if (!VS.portrait) return;
-    flip = !flip;
     layout();
   });
 
@@ -1299,7 +1274,8 @@
     }
 
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
-      undoBtn.click();
+      if (e.shiftKey) redoBtn.click();
+      else undoBtn.click();
       e.preventDefault();
     }
   });
@@ -1307,7 +1283,7 @@
   /* =========================================================
      СТАРТ
      ========================================================= */
-  viewHalf = isPortrait();   // на телефоне сразу половина поля
+  viewHalf = isPortrait(); // На телефоне сразу половина поля
 
   setTool('select');
   loadLib();
